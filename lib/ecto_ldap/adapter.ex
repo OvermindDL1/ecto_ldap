@@ -77,6 +77,20 @@ defmodule Ecto.Ldap.Adapter do
 
   ####
   #
+  # Ecto's DBConnection behaviour additions
+  #
+  ####
+  @type conn :: DBConnection.conn
+  @pool_timeout 5000
+  @timeout 5000
+  @idle_timeout 5000
+  @max_rows 500
+  @doc false
+  def child_spec(opts) do
+  end
+
+  ####
+  #
   # GenServer API
   #
   ####
@@ -166,7 +180,7 @@ defmodule Ecto.Ldap.Adapter do
   end
 
   def prepare(:all, query) do
-    query_metadata = 
+    query_metadata =
       [
         :construct_filter,
         :construct_base,
@@ -184,7 +198,7 @@ defmodule Ecto.Ldap.Adapter do
 
   @doc false
   def construct_filter(%{wheres: wheres}) when is_list(wheres) do
-    filter_term = 
+    filter_term =
       wheres
       |> Enum.map(&Map.get(&1, :expr))
     {:filter, filter_term}
@@ -212,10 +226,10 @@ defmodule Ecto.Ldap.Adapter do
   @doc false
   def construct_attributes(%{select: select, sources: sources}) do
     case select.fields do
-      [{:&, [], [0]}] -> 
+      [{:&, [], [0]}] ->
         { :attributes,
           sources |> ordered_fields |> Enum.map(&convert_to_erlang/1) }
-      attributes -> 
+      attributes ->
         {
           :attributes,
           attributes
@@ -402,7 +416,7 @@ defmodule Ecto.Ldap.Adapter do
 
   defp process_entry({:eldap_entry, dn, attributes}) when is_list(attributes) do
     List.flatten(
-      [dn: dn], 
+      [dn: dn],
       Enum.map(attributes, fn {key, value} ->
         {key |> to_string |> String.to_atom, value}
       end))
